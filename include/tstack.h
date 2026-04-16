@@ -1,53 +1,44 @@
+// Copyright 2021 NNTU-CS
 #ifndef INCLUDE_TSTACK_H_
 #define INCLUDE_TSTACK_H_
 
-template<typename T>
+template<typename T, int size>
 class TStack {
  private:
-    T* data;
-    int max_size;
-    int top_idx;
+  static constexpr int kStackSize = size;
+  T data[kStackSize];
+  int topIndex;
 
  public:
-    explicit TStack(int size) : max_size(size), top_idx(-1) {
-        data = new T[max_size];
+  TStack() : topIndex(0) {}
+
+  bool isEmpty() const {
+    return topIndex == 0;
+  }
+
+  bool isFull() const {
+    return topIndex >= kStackSize;
+  }
+
+  void push(const T& value) {
+    if (!isFull()) {
+      data[topIndex++] = value;
     }
-    
-    ~TStack() {
-        delete[] data;
+  }
+
+  T pop() {
+    if (!isEmpty()) {
+      return data[--topIndex];
     }
-    
-    bool IsEmpty() const {
-        return top_idx == -1;
+    throw std::runtime_error("Stack is empty");
+  }
+
+  const T& peek() const {
+    if (!isEmpty()) {
+      return data[topIndex - 1];
     }
-    
-    bool IsFull() const {
-        return top_idx == max_size - 1;
-    }
-    
-    void Push(const T& value) {
-        if (!IsFull()) {
-            data[++top_idx] = value;
-        }
-    }
-    
-    T Pop() {
-        if (!IsEmpty()) {
-            return data[top_idx--];
-        }
-        return T();
-    }
-    
-    T Top() const {
-        if (!IsEmpty()) {
-            return data[top_idx];
-        }
-        return T();
-    }
-    
-    void Clear() {
-        top_idx = -1;
-    }
+    throw std::runtime_error("Stack is empty");
+  }
 };
 
 #endif  // INCLUDE_TSTACK_H_
