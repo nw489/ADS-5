@@ -1,77 +1,56 @@
 #ifndef INCLUDE_TSTACK_H_
 #define INCLUDE_TSTACK_H_
 
-#include <stdexcept>
-
-template <typename T>
+template<typename T>
 class TStack {
 private:
-    T* arr;
-    int top_index;
-    int capacity;
+    T* data;
+    int max_size;
+    int top_idx;
 
 public:
-    TStack(int size) : top_index(-1), capacity(size) {
-        if (size <= 0) {
-            throw std::invalid_argument("Size must be positive");
-        }
-        arr = new T[capacity];
+    TStack(int size) : max_size(size), top_idx(-1) {
+        data = new T[max_size];
     }
+    
     ~TStack() {
-        delete[] arr;
+        delete[] data;
     }
     
-    TStack(const TStack& other) : top_index(other.top_index), capacity(other.capacity) {
-        arr = new T[capacity];
-        for (int i = 0; i <= top_index; i++) {
-            arr[i] = other.arr[i];
-        }
-    }
-    
-    TStack& operator=(const TStack& other) {
-        if (this != &other) {
-            delete[] arr;
-            capacity = other.capacity;
-            top_index = other.top_index;
-            arr = new T[capacity];
-            for (int i = 0; i <= top_index; i++) {
-                arr[i] = other.arr[i];
-            }
-        }
-        return *this;
-    }
     bool IsEmpty() const {
-        return top_index == -1;
+        return top_idx == -1;
     }
+    
     bool IsFull() const {
-        return top_index == capacity - 1;
+        return top_idx == max_size - 1;
     }
+    
     void Push(const T& value) {
-        if (IsFull()) {
-            throw std::overflow_error("Stack is full");
+        if (!IsFull()) {
+            data[++top_idx] = value;
         }
-        arr[++top_index] = value;
     }
     
     T Pop() {
-        if (IsEmpty()) {
-            throw std::underflow_error("Stack is empty");
+        if (!IsEmpty()) {
+            return data[top_idx--];
         }
-        return arr[top_index--];
+        return T();
     }
     
-        if (IsEmpty()) {
-            throw std::underflow_error("Stack is empty");
+    T Top() const {
+        if (!IsEmpty()) {
+            return data[top_idx];
         }
-        return arr[top_index];
+        return T();
     }
     
     int Size() const {
-        return top_index + 1;
+        return top_idx + 1;
     }
     
     void Clear() {
-        top_index = -1;
+        top_idx = -1;
     }
 };
 
