@@ -4,82 +4,83 @@
 #include "tstack.h"
 
 int getPriority(char op) {
-    switch (op) {
-        case '(': return 0;
-        case '+': return 1;
-        case '-': return 1;
-        case '*': return 2;
-        case '/': return 2;
-        default: return -1;
-    }
+    if (op == '+' || op == '-') return 1;
+    if (op == '*' || op == '/') return 2;
+    return 0;
 }
 
-std::string infx2pstfx(const std::string& inf) {
-    TStack<char, 100> stack;
-    std::string result;
-    for (size_t i = 0; i < inf.length(); i++) {
-        char c = inf[i];
-        if (isdigit(c)) {
-            while (i < inf.length() && isdigit(inf[i])) {
-                result += inf[i];
-                i++;
+std::string infx2pstfx(std::string infix) {
+    TStack<char> stack(100);
+    std::string postfix = "";
+    
+    for (char c : infix) {
+        if (c >= '0' && c <= '9') {
+            postfix += c;
+            postfix += ' ';
+        }
+        else if (c == '(') {
+            stack.Push(c);
+        }
+        else if (c == ')') {
+            while (!stack.IsEmpty() && stack.Top() != '(') {
+                postfix += stack.Pop();
+                postfix += ' ';
             }
-            result += ' ';
-            i--;
-        } else if (c == '(') {
-            stack.push(c);
-        } else if (c == ')') {
-            while (!stack.isEmpty() && stack.get() != '(') {
-                result += stack.pop();
-                result += ' ';
+            if (!stack.IsEmpty()) {
+                stack.Pop();
             }
-            if (!stack.isEmpty() && stack.get() == '(') {
-                stack.pop();
+        }
+        else if (c == '+' || c == '-' || c == '*' || c == '/') {
+            while (!stack.IsEmpty() && stack.Top() != '(' && 
+                   getPriority(stack.Top()) >= getPriority(c)) {
+                postfix += stack.Pop();
+                postfix += ' ';
             }
-        } else if (c == '+' || c == '-' || c == '*' || c == '/') {
-            while (!stack.isEmpty() && getPriority(stack.get()) >= getPriority(c)) {
-                result += stack.pop();
-                result += ' ';
-            }
-            stack.push(c);
+            stack.Push(c);
         }
     }
-    while (!stack.isEmpty()) {
-        result += stack.pop();
-        result += ' ';
+    
+    while (!stack.IsEmpty()) {
+        postfix += stack.Pop();
+        postfix += ' ';
     }
-    if (!result.empty() && result.back() == ' ') {
-        result.pop_back();
+    
+    if (!postfix.empty() && postfix.back() == ' ') {
+        postfix.pop_back();
     }
-    return result;
+    
+    return postfix;
 }
-int eval(const std::string& pref) {
-  TStack<int, 100> stack;
-    for (size_t i = 0; i < post.length(); i++) {
-        char c = post[i];
-        if (isdigit(c)) {
-            int number = 0;
-            while (i < post.length() && isdigit(post[i])) {
-                number = number * 10 + (post[i] - '0');
-                i++;
+int eval(std::string postfix) {
+    TStack<int> stack(100);
+    std::string num = "";
+    
+    for (char c : postfix) {
+        if (c >= '0' && c <= '9') {
+            num += c;
+        }
+        else if (c == ' ') {
+            if (!num.empty()) {
+                stack.Push(std::stoi(num));
+                num = "";
             }
-            stack.push(number);
-            i--;
-        } else if (c == '+' || c == '-' || c == '*' || c == '/') {
-            int b = stack.pop();
-            int a = stack.pop();
-            int res;
-            if (c == '+') {
-                res = a + b;
-            } else if (c == '-') {
-                res = a - b;
-            } else if (c == '*') {
-                res = a * b;
-            } else {
-                res = a / b;
+        }
+        else if (c == '+' || c == '-' || c == '*' || c == '/') {
+            int b = stack.Pop();
+            int a = stack.Pop();
+            int result;
+            
+            switch (c) {
+                case '+': result = a + b; break;
+                case '-': result = a - b; break;
+                case '*': result = a * b; break;
+                case '/': result = a / b; break;
+                default: result = 0;
             }
-            stack.push(res);
+            
+            stack.Push(result);
         }
     }
-    return stack.pop();
+    
+    return stack.Pop();
 }
