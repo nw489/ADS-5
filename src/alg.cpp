@@ -17,10 +17,8 @@ int getPriority(char op) {
 std::string infx2pstfx(const std::string& inf) {
     TStack<char, 100> stack;
     std::string result;
-    
     for (size_t i = 0; i < inf.length(); i++) {
         char c = inf[i];
-        
         if (isdigit(c)) {
             while (i < inf.length() && isdigit(inf[i])) {
                 result += inf[i];
@@ -46,25 +44,19 @@ std::string infx2pstfx(const std::string& inf) {
             stack.push(c);
         }
     }
-    
     while (!stack.isEmpty()) {
         result += stack.pop();
         result += ' ';
     }
-    
     if (!result.empty() && result.back() == ' ') {
         result.pop_back();
     }
-    
     return result;
 }
-
 int eval(const std::string& pref) {
   TStack<int, 100> stack;
-    
     for (size_t i = 0; i < post.length(); i++) {
         char c = post[i];
-        
         if (isdigit(c)) {
             int number = 0;
             while (i < post.length() && isdigit(post[i])) {
@@ -89,6 +81,5 @@ int eval(const std::string& pref) {
             stack.push(res);
         }
     }
-    
     return stack.pop();
 }
