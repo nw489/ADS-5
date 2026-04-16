@@ -3,13 +3,13 @@
 
 template<typename T>
 class TStack {
-private:
+ private:
     T* data;
     int max_size;
     int top_idx;
 
-public:
-    TStack(int size) : max_size(size), top_idx(-1) {
+ public:
+    explicit TStack(int size) : max_size(size), top_idx(-1) {
         data = new T[max_size];
     }
     
@@ -43,10 +43,6 @@ public:
             return data[top_idx];
         }
         return T();
-    }
-    
-    int Size() const {
-        return top_idx + 1;
     }
     
     void Clear() {
