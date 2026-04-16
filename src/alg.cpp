@@ -1,86 +1,133 @@
 // Copyright 2025 NNTU-CS
 #include <string>
 #include <map>
+#include <stdexcept>
 #include "tstack.h"
 
-int getPriority(char op) {
-    if (op == '+' || op == '-') return 1;
-    if (op == '*' || op == '/') return 2;
-    return 0;
+bool isOperator(char c) {
+  return c == '+' || c == '-' || c == '*' || c == '/';
 }
 
-std::string infx2pstfx(std::string infix) {
-    TStack<char> stack(100);
-    std::string postfix = "";
-    
-    for (char c : infix) {
-        if (c >= '0' && c <= '9') {
-            postfix += c;
-            postfix += ' ';
-        }
-        else if (c == '(') {
-            stack.Push(c);
-        }
-        else if (c == ')') {
-            while (!stack.IsEmpty() && stack.Top() != '(') {
-                postfix += stack.Pop();
-                postfix += ' ';
-            }
-            if (!stack.IsEmpty()) {
-                stack.Pop();
-            }
-        }
-        else if (c == '+' || c == '-' || c == '*' || c == '/') {
-            while (!stack.IsEmpty() && stack.Top() != '(' && 
-                   getPriority(stack.Top()) >= getPriority(c)) {
-                postfix += stack.Pop();
-                postfix += ' ';
-            }
-            stack.Push(c);
-        }
-    }
-    
-    while (!stack.IsEmpty()) {
-        postfix += stack.Pop();
-        postfix += ' ';
-    }
-    
-    if (!postfix.empty() && postfix.back() == ' ') {
-        postfix.pop_back();
-    }
-    
-    return postfix;
+int getPrecedence(char op) {
+  switch (op) {
+    case '+':
+    case '-':
+      return 1;
+    case '*':
+    case '/':
+      return 2;
+    default:
+      return 0;
+  }
 }
-int eval(std::string postfix) {
-    TStack<int> stack(100);
-    std::string num = "";
-    
-    for (char c : postfix) {
-        if (c >= '0' && c <= '9') {
-            num += c;
-        }
-        else if (c == ' ') {
-            if (!num.empty()) {
-                stack.Push(std::stoi(num));
-                num = "";
-            }
-        }
-        else if (c == '+' || c == '-' || c == '*' || c == '/') {
-            int b = stack.Pop();
-            int a = stack.Pop();
-            int result;
-            
-            switch (c) {
-                case '+': result = a + b; break;
-                case '-': result = a - b; break;
-                case '*': result = a * b; break;
-                case '/': result = a / b; break;
-                default: result = 0;
-            }
-            
-            stack.Push(result);
-        }
+
+std::string infx2pstfx(const std::string& inf) {
+  TStack<char, 100> stack;
+  std::string result;
+
+  for (size_t i = 0; i < inf.length(); ++i) {
+    char c = inf[i];
+
+    if (c == ' ') {
+      continue;
     }
-    
-    return stack.Pop();
+
+    if (std::isdigit(c)) {
+      while (i < inf.length() && std::isdigit(inf[i])) {
+        result += inf[i];
+        ++i;
+      }
+      result += ' ';
+      --i;
+    } else if (c == '(') {
+      stack.push(c);
+    } else if (c == ')') {
+      while (!stack.isEmpty() && stack.peek() != '(') {
+        result += stack.pop();
+        result += ' ';
+      }
+      if (!stack.isEmpty()) {
+        stack.pop();
+      }
+    } else if (isOperator(c)) {
+      while (!stack.isEmpty() &&
+             stack.peek() != '(' &&
+             getPrecedence(stack.peek()) >= getPrecedence(c)) {
+        result += stack.pop();
+        result += ' ';
+      }
+      stack.push(c);
+    }
+  }
+
+  while (!stack.isEmpty()) {
+    result += stack.pop();
+    result += ' ';
+  }
+
+  if (!result.empty() && result.back() == ' ') {
+    result.pop_back();
+  }
+
+  return result;
+}
+
+
+int eval(const std::string& post) {
+  TStack<int, 100> stack;
+
+  std::string currentNumber;
+  for (size_t i = 0; i <= post.length(); ++i) {
+    char c = (i < post.length()) ? post[i] : ' ';
+
+    if (std::isdigit(c)) {
+      currentNumber += c;
+    } else if (c == ' ' && !currentNumber.empty()) {
+      stack.push(std::stoi(currentNumber));
+      currentNumber.clear();
+    } else if (isOperator(c)) {
+      if (stack.isEmpty()) {
+        throw std::runtime_error("Invalid postfix expression");
+      }
+      int b = stack.pop();
+      if (stack.isEmpty()) {
+        throw std::runtime_error("Invalid postfix expression");
+      }
+      int a = stack.pop();
+
+      int result;
+      switch (c) {
+        case '+':
+          result = a + b;
+          break;
+        case '-':
+          result = a - b;
+          break;
+        case '*':
+          result = a * b;
+          break;
+        case '/':
+          if (b == 0) {
+            throw std::runtime_error("Division by zero");
+          }
+          result = a / b;
+          break;
+        default:
+          throw std::runtime_error("Unknown operator");
+      }
+
+      stack.push(result);
+    }
+  }
+
+  if (stack.isEmpty()) {
+    throw std::runtime_error("Empty expression");
+  }
+
+  int finalResult = stack.pop();
+  if (!stack.isEmpty()) {
+    throw std::runtime_error("Invalid postfix expression");
+  }
+
+  return finalResult;
 }
