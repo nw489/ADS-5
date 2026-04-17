@@ -72,7 +72,6 @@ std::string infx2pstfx(const std::string& inf) {
   return result;
 }
 
-
 int eval(const std::string& post) {
   TStack<int, 100> stack;
 
